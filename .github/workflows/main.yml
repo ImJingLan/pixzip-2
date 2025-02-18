@@ -16,15 +16,15 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@latest
+        uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@latest
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install pnpm
-        uses: pnpm/action-setup@latest
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
@@ -51,27 +51,27 @@ jobs:
 
       - name: upload artifact (macOS Apple Silicon)
         if: matrix.os == 'macos-14'
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ matrix.os }}
           path: dist/*.dmg
 
       - name: upload artifact (macOS Intel)
         if: matrix.os == 'macos-12'
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ matrix.os }}
           path: dist/*.dmg
 
       - name: upload artifact (Windows)
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@latest
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: ${{ matrix.os }}
           path: dist/*.exe
 
       - name: Release
-        uses: softprops/action-gh-release@latest
+        uses: phuonghuynh/action-ghrelease@v1.1.0
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
