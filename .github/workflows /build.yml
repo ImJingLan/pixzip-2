@@ -1,0 +1,80 @@
+name: Build/release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-14, macos-12]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Build for macOS Apple Silicon
+        if: matrix.os == 'macos-14'
+        run: pnpm run build:mac:apple
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build for macOS Intel
+        if: matrix.os == 'macos-12'
+        run: pnpm run build:mac:intel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build for Windows
+        if: matrix.os == 'windows-latest'
+        run: pnpm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upload artifact (macOS Apple Silicon)
+        if: matrix.os == 'macos-14'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: dist/*.dmg
+
+      - name: upload artifact (macOS Intel)
+        if: matrix.os == 'macos-12'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: dist/*.dmg
+
+      - name: upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}
+          path: dist/*.exe
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/*.dmg
+            dist/*.exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
